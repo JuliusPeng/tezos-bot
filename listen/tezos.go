@@ -71,12 +71,13 @@ func (t *TezosListener) Start() {
 	}()
 
 	for hash := range cBlockHash {
+		// cBlockHash channel can emit the same has multiple time
+		// In order to avoid duplicate we check if it has already been processed
 		if !t.cache.Has(hash) {
 			t.cache.Add(hash)
 			block, err := t.service.GetBlock(ctx, t.config.GetChainID(), hash)
-
 			if err != nil {
-				fmt.Printf("Block: %s missed because of error: %s\n", hash, err.Error())
+				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 				continue
 			}
 

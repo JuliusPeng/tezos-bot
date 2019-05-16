@@ -30,7 +30,7 @@ func main() {
 	var p service.VotePublisher
 
 	if c.GetTwitterAccessToken() == "" {
-		fmt.Printf("Twitter access token not configured posting vote to stdout")
+		fmt.Printf("Twitter access token not configured posting vote to stdout\n")
 		p = &publish.DebugPublisher{}
 	} else {
 		p, err = publish.NewTwitterPublisher(c)

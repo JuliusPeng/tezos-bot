@@ -8,11 +8,14 @@ import (
 
 // Config struct containing all configurable parameter for the tezos bot
 type Config struct {
-	RPCURL             string `yaml:"rpc_url"`
-	TwitterAccessToken string `yaml:"twitter_access_token"`
-	ChainID            string `yaml:"chain"`
-	RetryCount         int    `yaml:"retry_count"`
-	History            bool   `yaml:"history"`
+	RPCURL                   string `yaml:"rpc_url"`
+	TwitterAccessToken       string `yaml:"twitter_access_token"`
+	TwitterAccessTokenSecret string `yaml:"twitter_access_token_secret"`
+	TwitterConsummerID       string `yaml:"twitter_consummer_id"`
+	TwitterConsummerKey      string `yaml:"twitter_consummer_key"`
+	ChainID                  string `yaml:"chain"`
+	RetryCount               int    `yaml:"retry_count"`
+	History                  bool   `yaml:"history"`
 }
 
 // GetRPCURL returns the tezos rpc endpoint
@@ -38,6 +41,21 @@ func (c Config) GetChainID() string {
 // GetTwitterAccessToken returns the twitter access token
 func (c Config) GetTwitterAccessToken() string {
 	return c.TwitterAccessToken
+}
+
+// GetTwitterAccessTokenSecret returns the twitter access token secret
+func (c Config) GetTwitterAccessTokenSecret() string {
+	return c.TwitterAccessTokenSecret
+}
+
+// GetTwitterConsummerID returns the twitter consummer id
+func (c Config) GetTwitterConsummerID() string {
+	return c.TwitterConsummerID
+}
+
+// GetTwitterConsummerKey returns the twitter consummer key
+func (c Config) GetTwitterConsummerKey() string {
+	return c.TwitterConsummerKey
 }
 
 // Load read a config file and unmarshal it into the config struct

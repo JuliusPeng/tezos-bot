@@ -8,6 +8,10 @@ import (
 	tezos "github.com/ecadlabs/go-tezos"
 )
 
+const (
+	HEAD_BLOCK = "head"
+)
+
 // BlockStreamingFunc function that emit a of block
 type BlockStreamingFunc func(ctx context.Context, config TezosConfig, service *tezos.Service, results chan<- string) error
 
@@ -30,8 +34,8 @@ func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 			}
 
 			errCount++
-			time.Sleep(time.Duration(errCount) * time.Second)
 			fmt.Printf("Error encountered while trying to connect to rpc node: %s\n", err.Error())
+			time.Sleep(time.Duration(errCount) * time.Second)
 		} else {
 			errCount = 0
 		}
@@ -40,7 +44,7 @@ func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 
 // HistoryBlockStreamingFunc start from genesis and emit the hash of each block until current head
 func HistoryBlockStreamingFunc(ctx context.Context, config TezosConfig, service *tezos.Service, results chan<- string) error {
-	head, err := service.GetBlock(ctx, config.GetChainID(), "head")
+	head, err := service.GetBlock(ctx, config.GetChainID(), HEAD_BLOCK)
 	if err != nil {
 		return err
 	}

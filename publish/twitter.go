@@ -4,12 +4,15 @@ import (
 	"fmt"
 
 	"github.com/dghubble/go-twitter/twitter"
+	"github.com/dghubble/oauth1"
 	"github.com/ecadlabs/tezos-bot/models"
-	"golang.org/x/oauth2"
 )
 
 // TwitterConfig interface with method necessary to obtain twitter publisher configurable parameter
 type TwitterConfig interface {
+	GetTwitterConsummerID() string
+	GetTwitterConsummerKey() string
+	GetTwitterAccessTokenSecret() string
 	GetTwitterAccessToken() string
 }
 
@@ -20,9 +23,10 @@ type TwitterPublisher struct {
 
 // NewTwitterPublisher create a new TwitterPublisher
 func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
-	twitterConf := &oauth2.Config{}
-	token := &oauth2.Token{AccessToken: config.GetTwitterAccessToken()}
-	httpClient := twitterConf.Client(oauth2.NoContext, token)
+	c := oauth1.NewConfig(config.GetTwitterConsummerID(), config.GetTwitterConsummerKey())
+	token := oauth1.NewToken(config.GetTwitterAccessToken(), config.GetTwitterAccessTokenSecret())
+
+	httpClient := c.Client(oauth1.NoContext, token)
 
 	client := twitter.NewClient(httpClient)
 
@@ -42,7 +46,7 @@ func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
 
 // Publish a new ballot as a tweet
 func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
-	status := fmt.Sprintf("%s voted %s for proposal %s", ballot.PKH, ballot.Ballot, ballot.ProposalHash)
+	status := fmt.Sprintf("Tezos address %s voted \"%s\" on #Tezos proposal \"%s\"", ballot.PKH, ballot.Ballot, "Athens A")
 
 	_, _, err := t.client.Statuses.Update(status, nil)
 	return err
