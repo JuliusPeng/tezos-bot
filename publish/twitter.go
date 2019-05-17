@@ -1,8 +1,6 @@
 package publish
 
 import (
-	"fmt"
-
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/ecadlabs/tezos-bot/models"
@@ -46,8 +44,7 @@ func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
 
 // Publish a new ballot as a tweet
 func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
-	status := fmt.Sprintf("Tezos address %s voted \"%s\" on #Tezos proposal \"%s\"", ballot.PKH, ballot.Ballot, "Athens A")
-
+	status := GetStatusString(ballot)
 	_, _, err := t.client.Statuses.Update(status, nil)
 	return err
 }

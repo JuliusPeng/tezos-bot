@@ -11,6 +11,7 @@ type DebugPublisher struct{}
 
 // Publish logs ballot directly to stdout
 func (d *DebugPublisher) Publish(ballot *models.Ballot) error {
-	fmt.Printf("%s voted %s for proposal %s", ballot.PKH, ballot.Ballot, ballot.ProposalHash)
+	status := GetStatusString(ballot)
+	fmt.Printf("%s\n", status)
 	return nil
 }
