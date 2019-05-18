@@ -11,7 +11,7 @@ import (
 // GetStatusString composes a status string based on available vanity data
 func GetStatusString(ballot *models.Ballot) string {
 
-	templateBasic := `Tezos address %s voted "%s" on #Tezos proposal "%s""`
+	templateBasic := `Tezos address %s voted "%s" on #Tezos proposal "%s"`
 	templateVanity := `Tezos baker "%s"/%s voted "%s" on #Tezos proposal "%s"`
 	// TODO(jev) update to query Proposal vanity name for DNS
 	proposalVanityName := "Athens A"
