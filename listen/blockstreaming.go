@@ -18,17 +18,20 @@ type BlockStreamingFunc func(ctx context.Context, config TezosConfig, service *t
 // MonitorBlockStreamingFunc emit the hash of each new head
 func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service *tezos.Service, results chan<- string) error {
 	cMonitorBlock := make(chan *tezos.MonitorBlock)
+	errCount := 0
 	defer close(cMonitorBlock)
 	go func() {
 		for block := range cMonitorBlock {
+			// Reset the error count on new block
+			errCount = 0
 			results <- block.Hash
 		}
 	}()
 
-	errCount := 0
 	for {
 		err := service.GetMonitorHeads(ctx, config.GetChainID(), cMonitorBlock)
 		if err != nil {
+			// Retry connection until retry count is reached
 			if errCount > config.GetRetryCount() {
 				return fmt.Errorf("Unable to connect to rpc node after %d tries", config.GetRetryCount())
 			}
@@ -36,8 +39,6 @@ func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 			errCount++
 			fmt.Printf("Error encountered while trying to connect to rpc node: %s\n", err.Error())
 			time.Sleep(time.Duration(errCount) * time.Second)
-		} else {
-			errCount = 0
 		}
 	}
 }
