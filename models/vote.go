@@ -5,4 +5,5 @@ type Ballot struct {
 	PKH          string
 	Ballot       string
 	ProposalHash string
+	Rolls        int64
 }

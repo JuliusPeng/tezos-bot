@@ -11,10 +11,15 @@ import (
 // GetStatusString composes a status string based on available vanity data
 func GetStatusString(ballot *models.Ballot) string {
 
-	templateBasic := `Tezos address %s voted "%s" on #Tezos proposal "%s"`
-	templateVanity := `Tezos baker "%s"/%s voted "%s" on #Tezos proposal "%s"`
+	templateBasic := `Tezos address %s voted "%s" %son #Tezos proposal "%s"`
+	templateVanity := `Tezos baker "%s"/%s voted "%s" %son #Tezos proposal "%s"`
 	// TODO(jev) update to query Proposal vanity name for DNS
 	proposalVanityName := "Athens A"
+
+	templateRolls := ""
+	if ballot.Rolls != 0 {
+		templateRolls = fmt.Sprintf("with %d rolls ", ballot.Rolls)
+	}
 
 	// tz.tezz.ie is an experimental DNS zone to resolve vanity names from tz
 	// addresses
@@ -22,10 +27,10 @@ func GetStatusString(ballot *models.Ballot) string {
 
 	if err != nil {
 		log.Printf("No address found for %s, err: %s", ballot.PKH, err)
-		return fmt.Sprintf(templateBasic, ballot.PKH, ballot.Ballot, proposalVanityName)
+		return fmt.Sprintf(templateBasic, ballot.PKH, ballot.Ballot, templateRolls, proposalVanityName)
 	}
 	log.Printf("Address %s found for %s, ", address, ballot.PKH)
-	return fmt.Sprintf(templateVanity, address, ballot.PKH, ballot.Ballot, proposalVanityName)
+	return fmt.Sprintf(templateVanity, address, ballot.PKH, ballot.Ballot, templateRolls, proposalVanityName)
 
 }
 
