@@ -1,6 +1,8 @@
 package publish
 
 import (
+	"log"
+
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/ecadlabs/tezos-bot/models"
@@ -28,6 +30,7 @@ func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
 
 	client := twitter.NewClient(httpClient)
 
+	log.Println("Verifying twitter credentials...")
 	// Just making a simple call to verify that the token is ok
 	_, _, err := client.Timelines.HomeTimeline(&twitter.HomeTimelineParams{
 		Count: 1,
@@ -46,6 +49,7 @@ func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
 func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
 	status := GetStatusString(ballot)
 	_, _, err := t.client.Statuses.Update(status, nil)
+	log.Printf("(twitter) Published status: %s\n", status)
 	return err
 }
 
@@ -53,5 +57,6 @@ func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
 func (t *TwitterPublisher) PublishProtoChange(proto string) error {
 	status := GetProtocolString(proto)
 	_, _, err := t.client.Statuses.Update(status, nil)
+	log.Printf("(twitter) Published status: %s\n", status)
 	return err
 }

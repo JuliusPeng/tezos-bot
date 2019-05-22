@@ -44,5 +44,8 @@ func main() {
 	}
 
 	s := service.New(l, p)
+
+	log.Println("Bot started...")
+
 	s.Start()
 }
