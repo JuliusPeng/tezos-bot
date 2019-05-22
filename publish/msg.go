@@ -25,7 +25,7 @@ func GetStatusString(ballot *models.Ballot) string {
 	if percentTowardQuorum > 0 {
 		templateQuorum = fmt.Sprintf("with %.2f%% remaining to reach %.2f%% quorum.", percentTowardQuorum, ballot.Quorum)
 	}
-	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%%/yay %.2f%%/nay, %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum)
+	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%% yay/%.2f%% nay, %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum)
 
 	// tz.tezz.ie is an experimental DNS zone to resolve vanity names from tz
 	// addresses
@@ -38,6 +38,20 @@ func GetStatusString(ballot *models.Ballot) string {
 	log.Printf("Address %s found for %s, ", address, ballot.PKH)
 	return fmt.Sprintf(templateVanity, address, ballot.PKH, ballot.Ballot, templateRolls, proposalVanityName, templateStatus)
 
+}
+
+// GetProtocolString retrieve the template for protocol change status
+func GetProtocolString(proto string) string {
+	lookupKey := fmt.Sprintf("%s", proto)
+
+	protocolName, err := LookupTZName(lookupKey, "tz.tezz.ie")
+
+	if err != nil {
+		log.Printf("No protocol found for %s, err: %s", lookupKey, err)
+		protocolName = proto
+	}
+
+	return fmt.Sprintf("Protocol %s is now live on mainnet!", protocolName)
 }
 
 // LookupTZName queries DNS for a txt record corresponding to a TZ address.

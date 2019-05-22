@@ -11,11 +11,13 @@ type ChainListener interface {
 	Start()
 	Stop()
 	GetNewVotes() chan *models.Ballot
+	GetNewProto() chan string
 }
 
 // VotePublisher interface for required methods of a vote publisher
 type VotePublisher interface {
 	Publish(vote *models.Ballot) error
+	PublishProtoChange(proto string) error
 }
 
 // Service main service that listen for new vote on a chain and publish them
@@ -36,13 +38,18 @@ func New(chainListener ChainListener, votePublisher VotePublisher) *Service {
 
 // Start a the service
 func (s *Service) Start() {
-	c := s.chainListener.GetNewVotes()
+	cVote := s.chainListener.GetNewVotes()
+	cProto := s.chainListener.GetNewProto()
 	go func() {
 		for {
 			select {
-			case vote := <-c:
+			case vote := <-cVote:
 				if err := s.votePublisher.Publish(vote); err != nil {
 					fmt.Printf("%v was not able to be sent due to error: %s", vote, err.Error())
+				}
+			case proto := <-cProto:
+				if err := s.votePublisher.PublishProtoChange(proto); err != nil {
+					fmt.Printf("%v was not able to be sent due to error: %s", proto, err.Error())
 				}
 			case _ = <-s.signals:
 				s.chainListener.Stop()
