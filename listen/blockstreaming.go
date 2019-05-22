@@ -37,7 +37,7 @@ func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 			}
 
 			errCount++
-			fmt.Printf("Error encountered while trying to connect to rpc node: %s\n", err.Error())
+			fmt.Printf("Error encountered while trying to connect to rpc node (err count: %d): %s\n", errCount, err.Error())
 			time.Sleep(time.Duration(errCount) * time.Second)
 		}
 	}
