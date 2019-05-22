@@ -16,6 +16,8 @@ type Config struct {
 	ChainID                  string `yaml:"chain"`
 	RetryCount               int    `yaml:"retry_count"`
 	History                  bool   `yaml:"history"`
+	MonitorVote              bool   `yaml:"monitor_vote"`
+	MonitorProtocol          bool   `yaml:"monitor_protocol"`
 }
 
 // GetRPCURL returns the tezos rpc endpoint
@@ -36,6 +38,16 @@ func (c Config) GetRetryCount() int {
 // GetChainID returns the chain ID
 func (c Config) GetChainID() string {
 	return c.ChainID
+}
+
+// IsMonitorVote returns true if should monitor vote
+func (c Config) IsMonitorVote() bool {
+	return c.MonitorVote
+}
+
+// IsMonitorProtocol returns true if should monitor protocol change
+func (c Config) IsMonitorProtocol() bool {
+	return c.MonitorProtocol
 }
 
 // GetTwitterAccessToken returns the twitter access token

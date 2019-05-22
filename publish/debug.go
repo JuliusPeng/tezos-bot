@@ -15,3 +15,10 @@ func (d *DebugPublisher) Publish(ballot *models.Ballot) error {
 	fmt.Printf("(%d) %s\n", len(status), status)
 	return nil
 }
+
+// PublishProtoChange a new protocol change message to stdout
+func (d *DebugPublisher) PublishProtoChange(proto string) error {
+	status := GetProtocolString(proto)
+	fmt.Printf("(%d) %s\n", len(status), status)
+	return nil
+}
