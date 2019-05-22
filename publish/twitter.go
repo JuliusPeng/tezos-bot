@@ -1,8 +1,6 @@
 package publish
 
 import (
-	"fmt"
-
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/ecadlabs/tezos-bot/models"
@@ -54,6 +52,6 @@ func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
 // PublishProtoChange a new protocol change message as a tweet
 func (t *TwitterPublisher) PublishProtoChange(proto string) error {
 	status := GetProtocolString(proto)
-	fmt.Printf("(%d) %s\n", len(status), status)
-	return nil
+	_, _, err := t.client.Statuses.Update(status, nil)
+	return err
 }
