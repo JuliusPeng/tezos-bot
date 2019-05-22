@@ -3,6 +3,7 @@ package listen
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	tezos "github.com/ecadlabs/go-tezos"
@@ -37,7 +38,7 @@ func MonitorBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 			}
 
 			errCount++
-			fmt.Printf("Error encountered while trying to connect to rpc node (err count: %d): %s\n", errCount, err.Error())
+			log.Printf("Error encountered while trying to connect to rpc node (err count: %d): %s\n", errCount, err.Error())
 			time.Sleep(time.Duration(errCount) * time.Second)
 		}
 	}

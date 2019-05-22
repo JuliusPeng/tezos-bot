@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/ecadlabs/tezos-bot/models"
 )
@@ -45,11 +45,11 @@ func (s *Service) Start() {
 			select {
 			case vote := <-cVote:
 				if err := s.votePublisher.Publish(vote); err != nil {
-					fmt.Printf("%v was not able to be sent due to error: %s", vote, err.Error())
+					log.Printf("%v was not able to be sent due to error: %s", vote, err.Error())
 				}
 			case proto := <-cProto:
 				if err := s.votePublisher.PublishProtoChange(proto); err != nil {
-					fmt.Printf("%v was not able to be sent due to error: %s", proto, err.Error())
+					log.Printf("%v was not able to be sent due to error: %s", proto, err.Error())
 				}
 			case _ = <-s.signals:
 				s.chainListener.Stop()

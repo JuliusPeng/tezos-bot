@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/ecadlabs/tezos-bot/config"
 	"github.com/ecadlabs/tezos-bot/listen"
@@ -25,20 +25,20 @@ func main() {
 	l, err := listen.NewTezosListener(c)
 
 	if err != nil {
-		fmt.Printf(err.Error())
+		log.Printf(err.Error())
 		return
 	}
 
 	var p service.VotePublisher
 
 	if c.GetTwitterAccessToken() == "" {
-		fmt.Printf("Twitter access token not configured posting vote to stdout\n")
+		log.Printf("Twitter access token not configured posting vote to stdout\n")
 		p = &publish.DebugPublisher{}
 	} else {
 		p, err = publish.NewTwitterPublisher(c)
 
 		if err != nil {
-			fmt.Printf(err.Error())
+			log.Printf(err.Error())
 			return
 		}
 	}

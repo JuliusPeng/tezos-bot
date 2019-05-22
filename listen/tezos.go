@@ -3,6 +3,7 @@ package listen
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ecadlabs/go-tezos"
@@ -84,14 +85,14 @@ func (t *TezosListener) Start() {
 			block, err := t.service.GetBlock(ctx, t.config.GetChainID(), hash)
 
 			if err != nil {
-				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+				log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 				continue
 			}
 
 			if t.config.IsMonitorVote() {
 				err = t.lookForBallot(ctx, block)
 				if err != nil {
-					fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 					continue
 				}
 			}
@@ -99,7 +100,7 @@ func (t *TezosListener) Start() {
 			if t.config.IsMonitorProtocol() {
 				err = t.lookForProtocolChange(ctx, block)
 				if err != nil {
-					fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 					continue
 				}
 			}
@@ -108,7 +109,7 @@ func (t *TezosListener) Start() {
 }
 
 func (t *TezosListener) lookForProtocolChange(ctx context.Context, block *tezos.Block) error {
-	fmt.Printf("TezosListener: Inspecting block %s for protocol changes.\n", block.Hash)
+	log.Printf("TezosListener: Inspecting block %s for protocol changes.\n", block.Hash)
 
 	pred := lastBlock
 	if lastBlock == nil {
@@ -131,7 +132,7 @@ func (t *TezosListener) lookForProtocolChange(ctx context.Context, block *tezos.
 
 func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block) error {
 	hash := block.Hash
-	fmt.Printf("TezosListener: Inspecting block %s for new ballot operations.\n", block.Hash)
+	log.Printf("TezosListener: Inspecting block %s for new ballot operations.\n", block.Hash)
 
 	ballotOps := []*tezos.BallotOperationElem{}
 	for _, group := range block.Operations {
