@@ -90,11 +90,25 @@ func (t *TezosListener) Start() {
 				}
 			}
 
+			listings, err := t.service.GetBallotListings(ctx, t.config.GetChainID(), hash)
+
+			if err != nil {
+				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+				continue
+			}
+
 			for _, ballotOp := range ballotOps {
+				rolls := int64(0)
+				for _, entry := range listings {
+					if entry.PKH == ballotOp.Source {
+						rolls = entry.Rolls
+					}
+				}
 				ballot := &models.Ballot{
 					PKH:          ballotOp.Source,
 					Ballot:       ballotOp.Ballot,
 					ProposalHash: ballotOp.Proposal,
+					Rolls:        rolls,
 				}
 				t.votesChan <- ballot
 			}
