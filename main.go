@@ -12,10 +12,12 @@ import (
 func main() {
 
 	c := config.Config{
-		RPCURL:     "https://mainnet-node.tzscan.io",
-		ChainID:    "main",
-		RetryCount: 100,
-		History:    false,
+		RPCURL:          "https://mainnet-node.tzscan.io",
+		ChainID:         "main",
+		RetryCount:      100,
+		History:         false,
+		MonitorVote:     true,
+		MonitorProtocol: true,
 	}
 
 	c.Load("./config.yaml")
