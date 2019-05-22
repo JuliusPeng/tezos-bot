@@ -76,6 +76,7 @@ func (t *TezosListener) Start() {
 		if !t.cache.Has(hash) {
 			t.cache.Add(hash)
 			block, err := t.service.GetBlock(ctx, t.config.GetChainID(), hash)
+
 			if err != nil {
 				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 				continue
@@ -90,7 +91,32 @@ func (t *TezosListener) Start() {
 				}
 			}
 
+			ballots, err := t.service.GetBallots(ctx, t.config.GetChainID(), hash)
+
+			if err != nil {
+				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+				continue
+			}
+
 			listings, err := t.service.GetBallotListings(ctx, t.config.GetChainID(), hash)
+
+			if err != nil {
+				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+				continue
+			}
+
+			totalRolls := int64(0)
+			for _, entry := range listings {
+				totalRolls += entry.Rolls
+			}
+
+			if totalRolls == 0 {
+				// Unlikely to occurs
+				fmt.Printf("Block: %s skipped because no rolls", hash)
+				continue
+			}
+
+			quorum, err := t.getQuorum(ctx, hash)
 
 			if err != nil {
 				fmt.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
@@ -109,11 +135,26 @@ func (t *TezosListener) Start() {
 					Ballot:       ballotOp.Ballot,
 					ProposalHash: ballotOp.Proposal,
 					Rolls:        rolls,
+					Yay:          ballots.Yay,
+					Nay:          ballots.Nay,
+					Pass:         ballots.Pass,
+					Quorum:       quorum,
+					TotalRolls:   float64(totalRolls),
 				}
 				t.votesChan <- ballot
 			}
 		}
 	}
+}
+
+func (t *TezosListener) getQuorum(ctx context.Context, block string) (float64, error) {
+	quorum, err := t.service.GetCurrentQuorum(ctx, t.config.GetChainID(), block)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return float64(quorum) / 100, nil
 }
 
 // Stop stop the tezos listener
