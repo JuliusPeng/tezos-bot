@@ -16,26 +16,50 @@ type Ballot struct {
 }
 
 func (b *Ballot) PercentParticipation() float64 {
+	if b.TotalRolls == 0 {
+		return 0
+	}
+
 	return (b.Participations() / b.TotalRolls) * 100
 }
 
 func (b *Ballot) CountingPercentYay() float64 {
+	if b.CountingParticipations() == 0 {
+		return 0
+	}
+
 	return (float64(b.Yay) / b.CountingParticipations()) * 100
 }
 
 func (b *Ballot) CountingPercentNay() float64 {
+	if b.CountingParticipations() == 0 {
+		return 0
+	}
+
 	return (float64(b.Nay) / b.CountingParticipations()) * 100
 }
 
 func (b *Ballot) PercentYay() float64 {
+	if b.Participations() == 0 {
+		return 0
+	}
+
 	return (float64(b.Yay) / b.Participations()) * 100
 }
 
 func (b *Ballot) PercentNay() float64 {
+	if b.Participations() == 0 {
+		return 0
+	}
+
 	return (float64(b.Nay) / b.Participations()) * 100
 }
 
 func (b *Ballot) PercentPass() float64 {
+	if b.Participations() == 0 {
+		return 0
+	}
+
 	return (float64(b.Pass) / b.Participations()) * 100
 }
 
