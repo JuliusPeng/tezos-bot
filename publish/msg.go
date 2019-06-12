@@ -51,7 +51,7 @@ func GetProtocolString(proto string) string {
 		protocolName = proto
 	}
 
-	return fmt.Sprintf("Protocol %s is now live on mainnet!", protocolName)
+	return fmt.Sprintf("Protocol %s is now live on mainnet! #Tezos", protocolName)
 }
 
 // LookupTZName queries DNS for a txt record corresponding to a TZ address.
