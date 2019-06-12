@@ -20,6 +20,7 @@ type TezosConfig interface {
 	IsMonitorVote() bool
 	IsMonitorProtocol() bool
 	IsHistory() bool
+	GetHistoryStartingBlock() int
 }
 
 // TezosListener is a struct containing information necessary to monitor the tezos chain

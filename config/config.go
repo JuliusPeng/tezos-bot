@@ -16,8 +16,14 @@ type Config struct {
 	ChainID                  string `yaml:"chain"`
 	RetryCount               int    `yaml:"retry_count"`
 	History                  bool   `yaml:"history"`
+	HistoryStartingBlock     int    `yaml:"history_starting_block"`
 	MonitorVote              bool   `yaml:"monitor_vote"`
 	MonitorProtocol          bool   `yaml:"monitor_protocol"`
+}
+
+// GetHistoryStartingBlock return the starting block from which the bot should start monitring
+func (c Config) GetHistoryStartingBlock() int {
+	return c.HistoryStartingBlock
 }
 
 // GetRPCURL returns the tezos rpc endpoint

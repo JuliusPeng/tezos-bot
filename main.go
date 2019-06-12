@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/ecadlabs/tezos-bot/config"
@@ -12,15 +13,19 @@ import (
 func main() {
 
 	c := config.Config{
-		RPCURL:          "https://mainnet-node.tzscan.io",
-		ChainID:         "main",
-		RetryCount:      100,
-		History:         false,
-		MonitorVote:     true,
-		MonitorProtocol: true,
+		RPCURL:               "https://mainnet-node.tzscan.io",
+		ChainID:              "main",
+		RetryCount:           100,
+		History:              false,
+		MonitorVote:          true,
+		MonitorProtocol:      true,
+		HistoryStartingBlock: 0,
 	}
 
-	c.Load("./config.yaml")
+	var configFile string
+	flag.StringVar(&configFile, "c", "./config.yaml", "Config file.")
+	flag.Parse()
+	c.Load(configFile)
 
 	l, err := listen.NewTezosListener(c)
 

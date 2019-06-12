@@ -52,7 +52,7 @@ func HistoryBlockStreamingFunc(ctx context.Context, config TezosConfig, service 
 	}
 
 	level := head.Header.Level
-	i := 0
+	i := config.GetHistoryStartingBlock()
 	for i <= level {
 		block, err := service.GetBlock(ctx, config.GetChainID(), fmt.Sprintf("%d", i))
 		if err != nil {
