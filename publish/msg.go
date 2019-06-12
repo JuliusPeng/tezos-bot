@@ -12,8 +12,14 @@ import (
 func GetStatusString(ballot *models.Ballot) string {
 	templateBasic := `Tezos address %s voted "%s" %son #Tezos proposal "%s"%s`
 	templateVanity := `Tezos baker "%s" /%s voted "%s" %son #Tezos proposal "%s"%s`
-	// TODO(jev) update to query Proposal vanity name for DNS
-	proposalVanityName := "Athens A"
+
+	var proposalVanityName string
+	protocolName, err := LookupTZName(ballot.ProposalHash, "tz.tezz.ie")
+	if err != nil {
+		proposalVanityName = ballot.ProposalHash
+	} else {
+		proposalVanityName = protocolName
+	}
 
 	templateRolls := ""
 	if ballot.Rolls != 0 {
