@@ -29,3 +29,17 @@ func (d *DebugPublisher) PublishProposalInjection(proposal *models.Proposal) err
 	fmt.Printf("(%d) %s\n", len(status), status)
 	return nil
 }
+
+// PublishProposalSummary a new proposal summary message to stdout
+func (d *DebugPublisher) PublishProposalSummary(proposal *models.ProposalSummary) error {
+	status := GetProposalSummaryString(proposal)
+	fmt.Printf("(%d) %s\n", len(status), status)
+	return nil
+}
+
+// PublishWinningProposalSummary a new winning proposal summary message to stdout
+func (d *DebugPublisher) PublishWinningProposalSummary(proposal *models.ProposalSummary) error {
+	status := GetWinningProposalString(proposal)
+	fmt.Printf("(%d) %s\n", len(status), status)
+	return nil
+}

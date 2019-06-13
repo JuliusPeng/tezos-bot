@@ -46,6 +46,34 @@ func GetStatusString(ballot *models.Ballot) string {
 
 }
 
+// GetProposalSummaryString
+func GetProposalSummaryString(summary *models.ProposalSummary) string {
+	proposalName, err := LookupTZName(summary.ProposalHash, "tz.tezz.ie")
+
+	if err != nil {
+		log.Printf("No protocol found for %s, err: %s", summary.ProposalHash, err)
+		proposalName = summary.ProposalHash
+	} else {
+		proposalName = fmt.Sprintf("%s (%s)", proposalName, summary.ProposalHash)
+	}
+
+	return fmt.Sprintf("Proposal upvotes: #Tezos proposal %s now has %d votes.", proposalName, summary.SupporterCount)
+}
+
+// GetWinningProposalString
+func GetWinningProposalString(summary *models.ProposalSummary) string {
+	proposalName, err := LookupTZName(summary.ProposalHash, "tz.tezz.ie")
+
+	if err != nil {
+		log.Printf("No protocol found for %s, err: %s", summary.ProposalHash, err)
+		proposalName = summary.ProposalHash
+	} else {
+		proposalName = fmt.Sprintf("%s (%s)", proposalName, summary.ProposalHash)
+	}
+
+	return fmt.Sprintf("Proposal period complete: proposal %s received the most upvotes (%d) and is advancing to the exploration vote period.", proposalName, summary.SupporterCount)
+}
+
 // GetProposalInjectString retrieve the template for proposal injection status
 func GetProposalInjectString(proposal *models.Proposal) string {
 	address, err := LookupTZName(proposal.PKH, "tz.tezz.ie")
