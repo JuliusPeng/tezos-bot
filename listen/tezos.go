@@ -102,7 +102,7 @@ func (t *TezosListener) Start() {
 			}
 
 			if t.config.IsMonitorVote() && (periodKind.IsTestingVote() || periodKind.IsPromotionVote()) {
-				err = t.lookForBallot(ctx, block)
+				err = t.lookForBallot(ctx, block, periodKind)
 				if err != nil {
 					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
 					continue

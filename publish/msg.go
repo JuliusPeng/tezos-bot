@@ -26,12 +26,19 @@ func GetStatusString(ballot *models.Ballot) string {
 		templateRolls = fmt.Sprintf("with %d rolls ", ballot.Rolls)
 	}
 
-	templateQuorum := "and quorum has been reached."
+	templateQuorum := "and quorum has been reached"
 	percentTowardQuorum := ballot.PercentTowardQuorum()
 	if percentTowardQuorum > 0 {
-		templateQuorum = fmt.Sprintf("with %.2f%% remaining to reach %.2f%% quorum.", percentTowardQuorum, ballot.Quorum)
+		templateQuorum = fmt.Sprintf("with %.2f%% remaining to reach %.2f%% quorum", percentTowardQuorum, ballot.Quorum)
 	}
-	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%% yay/%.2f%% nay, %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum)
+
+	templatePhase := "for the promotion phase."
+
+	if ballot.IsTesting {
+		templatePhase = "for the testing phase."
+	}
+
+	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%% yay/%.2f%% nay, %s %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum, templatePhase)
 
 	// tz.tezz.ie is an experimental DNS zone to resolve vanity names from tz
 	// addresses
