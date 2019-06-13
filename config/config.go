@@ -19,6 +19,7 @@ type Config struct {
 	HistoryStartingBlock     int    `yaml:"history_starting_block"`
 	MonitorVote              bool   `yaml:"monitor_vote"`
 	MonitorProtocol          bool   `yaml:"monitor_protocol"`
+	MonitorProposal          bool   `yaml:"monitor_proposal"`
 }
 
 // GetHistoryStartingBlock return the starting block from which the bot should start monitring
@@ -54,6 +55,11 @@ func (c Config) IsMonitorVote() bool {
 // IsMonitorProtocol returns true if should monitor protocol change
 func (c Config) IsMonitorProtocol() bool {
 	return c.MonitorProtocol
+}
+
+// IsMonitorProposal returns true if should monitor proposal injection
+func (c Config) IsMonitorProposal() bool {
+	return c.MonitorProposal
 }
 
 // GetTwitterAccessToken returns the twitter access token

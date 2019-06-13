@@ -2,7 +2,6 @@ package listen
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -19,19 +18,22 @@ type TezosConfig interface {
 	GetRetryCount() int
 	IsMonitorVote() bool
 	IsMonitorProtocol() bool
+	IsMonitorProposal() bool
 	IsHistory() bool
 	GetHistoryStartingBlock() int
 }
 
 // TezosListener is a struct containing information necessary to monitor the tezos chain
 type TezosListener struct {
-	service    *tezos.Service
-	votesChan  chan *models.Ballot
-	protoChan  chan string
-	cache      *cache
-	signals    chan bool
-	config     TezosConfig
-	bStreaming BlockStreamingFunc
+	service            *tezos.Service
+	votesChan          chan *models.Ballot
+	protoChan          chan string
+	newProposalChan    chan *models.Proposal
+	proposalUpvoteChan chan *models.Proposal
+	cache              *cache
+	signals            chan bool
+	config             TezosConfig
+	bStreaming         BlockStreamingFunc
 }
 
 // NewTezosListener create a new TezosListener
@@ -48,13 +50,15 @@ func NewTezosListener(config TezosConfig) (*TezosListener, error) {
 	}
 
 	return &TezosListener{
-		service:    &tezos.Service{Client: client},
-		cache:      newCache(),
-		votesChan:  make(chan *models.Ballot),
-		protoChan:  make(chan string),
-		signals:    make(chan bool),
-		config:     config,
-		bStreaming: bStreamingFunc,
+		service:            &tezos.Service{Client: client},
+		cache:              newCache(),
+		votesChan:          make(chan *models.Ballot),
+		protoChan:          make(chan string),
+		newProposalChan:    make(chan *models.Proposal),
+		proposalUpvoteChan: make(chan *models.Proposal),
+		signals:            make(chan bool),
+		config:             config,
+		bStreaming:         bStreamingFunc,
 	}, nil
 }
 
@@ -90,7 +94,14 @@ func (t *TezosListener) Start() {
 				continue
 			}
 
-			if t.config.IsMonitorVote() {
+			periodKind, err := t.service.GetCurrentPeriodKind(ctx, t.config.GetChainID(), block.Hash)
+
+			if err != nil {
+				log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+				continue
+			}
+
+			if t.config.IsMonitorVote() && (periodKind.IsTestingVote() || periodKind.IsPromotionVote()) {
 				err = t.lookForBallot(ctx, block)
 				if err != nil {
 					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
@@ -105,102 +116,16 @@ func (t *TezosListener) Start() {
 					continue
 				}
 			}
-		}
-	}
-}
 
-func (t *TezosListener) lookForProtocolChange(ctx context.Context, block *tezos.Block) error {
-	log.Printf("TezosListener: Inspecting block %s for protocol changes.\n", block.Hash)
-
-	pred := lastBlock
-	if lastBlock == nil {
-		predHash := block.Header.Predecessor
-		b, err := t.service.GetBlock(ctx, t.config.GetChainID(), predHash)
-		if err != nil {
-			return err
-		}
-		pred = b
-	}
-
-	if block.Protocol != pred.Protocol {
-		t.protoChan <- block.Protocol
-	}
-
-	lastBlock = block
-
-	return nil
-}
-
-func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block) error {
-	hash := block.Hash
-	log.Printf("TezosListener: Inspecting block %s for new ballot operations.\n", block.Hash)
-
-	ballotOps := []*tezos.BallotOperationElem{}
-	for _, group := range block.Operations {
-		for _, op := range group {
-			ballotOps = append(ballotOps, tezos.FilterBallotOps(op.Contents)...)
-		}
-	}
-
-	ballots, err := t.service.GetBallots(ctx, t.config.GetChainID(), hash)
-
-	if err != nil {
-		return err
-	}
-
-	listings, err := t.service.GetBallotListings(ctx, t.config.GetChainID(), hash)
-
-	if err != nil {
-		return err
-	}
-
-	totalRolls := int64(0)
-	for _, entry := range listings {
-		totalRolls += entry.Rolls
-	}
-
-	if totalRolls == 0 {
-		// Unlikely to occurs
-		return fmt.Errorf("No rolls found in this block")
-	}
-
-	quorum, err := t.getQuorum(ctx, hash)
-
-	if err != nil {
-		return err
-	}
-
-	for _, ballotOp := range ballotOps {
-		rolls := int64(0)
-		for _, entry := range listings {
-			if entry.PKH == ballotOp.Source {
-				rolls = entry.Rolls
+			if t.config.IsMonitorProposal() && periodKind.IsProposal() {
+				err = t.lookForProposal(ctx, block)
+				if err != nil {
+					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+					continue
+				}
 			}
 		}
-		ballot := &models.Ballot{
-			PKH:          ballotOp.Source,
-			Ballot:       ballotOp.Ballot,
-			ProposalHash: ballotOp.Proposal,
-			Rolls:        rolls,
-			Yay:          ballots.Yay,
-			Nay:          ballots.Nay,
-			Pass:         ballots.Pass,
-			Quorum:       quorum,
-			TotalRolls:   float64(totalRolls),
-		}
-		t.votesChan <- ballot
 	}
-	return nil
-}
-
-func (t *TezosListener) getQuorum(ctx context.Context, block string) (float64, error) {
-	quorum, err := t.service.GetCurrentQuorum(ctx, t.config.GetChainID(), block)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return float64(quorum) / 100, nil
 }
 
 // Stop stop the tezos listener
@@ -216,4 +141,14 @@ func (t *TezosListener) GetNewVotes() chan *models.Ballot {
 // GetNewProto returns a proto channel
 func (t *TezosListener) GetNewProto() chan string {
 	return t.protoChan
+}
+
+// GetNewProposal returns a proto channel
+func (t *TezosListener) GetNewProposal() chan *models.Proposal {
+	return t.newProposalChan
+}
+
+// GetProposalUpvotes returns a proto channel
+func (t *TezosListener) GetProposalUpvotes() chan *models.Proposal {
+	return t.proposalUpvoteChan
 }

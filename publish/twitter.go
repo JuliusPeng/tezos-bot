@@ -60,3 +60,11 @@ func (t *TwitterPublisher) PublishProtoChange(proto string) error {
 	log.Printf("(twitter) Published status: %s\n", status)
 	return err
 }
+
+// PublishProposalInjection a new proposal injection message as a tweet
+func (t *TwitterPublisher) PublishProposalInjection(proposal *models.Proposal) error {
+	status := GetProposalInjectString(proposal)
+	_, _, err := t.client.Statuses.Update(status, nil)
+	log.Printf("(twitter) Published status: %s\n", status)
+	return err
+}

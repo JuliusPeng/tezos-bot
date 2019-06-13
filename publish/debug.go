@@ -22,3 +22,10 @@ func (d *DebugPublisher) PublishProtoChange(proto string) error {
 	fmt.Printf("(%d) %s\n", len(status), status)
 	return nil
 }
+
+// PublishProposalInjection a new proposal injection message to stdout
+func (d *DebugPublisher) PublishProposalInjection(proposal *models.Proposal) error {
+	status := GetProposalInjectString(proposal)
+	fmt.Printf("(%d) %s\n", len(status), status)
+	return nil
+}
