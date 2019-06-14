@@ -25,15 +25,17 @@ type TezosConfig interface {
 
 // TezosListener is a struct containing information necessary to monitor the tezos chain
 type TezosListener struct {
-	service            *tezos.Service
-	votesChan          chan *models.Ballot
-	protoChan          chan string
-	newProposalChan    chan *models.Proposal
-	proposalUpvoteChan chan *models.Proposal
-	cache              *cache
-	signals            chan bool
-	config             TezosConfig
-	bStreaming         BlockStreamingFunc
+	service             *tezos.Service
+	votesChan           chan *models.Ballot
+	protoChan           chan string
+	newProposalChan     chan *models.Proposal
+	proposalUpvoteChan  chan *models.Proposal
+	proposalSummaryChan chan *models.ProposalSummary
+	winningProposalChan chan *models.ProposalSummary
+	cache               *cache
+	signals             chan bool
+	config              TezosConfig
+	bStreaming          BlockStreamingFunc
 }
 
 // NewTezosListener create a new TezosListener
@@ -50,15 +52,17 @@ func NewTezosListener(config TezosConfig) (*TezosListener, error) {
 	}
 
 	return &TezosListener{
-		service:            &tezos.Service{Client: client},
-		cache:              newCache(),
-		votesChan:          make(chan *models.Ballot),
-		protoChan:          make(chan string),
-		newProposalChan:    make(chan *models.Proposal),
-		proposalUpvoteChan: make(chan *models.Proposal),
-		signals:            make(chan bool),
-		config:             config,
-		bStreaming:         bStreamingFunc,
+		service:             &tezos.Service{Client: client},
+		cache:               newCache(),
+		votesChan:           make(chan *models.Ballot),
+		protoChan:           make(chan string),
+		newProposalChan:     make(chan *models.Proposal),
+		proposalUpvoteChan:  make(chan *models.Proposal),
+		proposalSummaryChan: make(chan *models.ProposalSummary),
+		winningProposalChan: make(chan *models.ProposalSummary),
+		signals:             make(chan bool),
+		config:              config,
+		bStreaming:          bStreamingFunc,
 	}, nil
 }
 
@@ -124,6 +128,22 @@ func (t *TezosListener) Start() {
 					continue
 				}
 			}
+
+			if t.config.IsMonitorProposal() && (periodKind.IsProposal()) {
+				err = t.lookForProposalSummary(ctx, block)
+				if err != nil {
+					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+					continue
+				}
+			}
+
+			if t.config.IsMonitorProposal() && (periodKind.IsTestingVote()) {
+				err = t.lookForWinningProposal(ctx, block)
+				if err != nil {
+					log.Printf("Block: %s skipped because of error: %s\n", hash, err.Error())
+					continue
+				}
+			}
 		}
 	}
 }
@@ -151,4 +171,14 @@ func (t *TezosListener) GetNewProposal() chan *models.Proposal {
 // GetProposalUpvotes returns a proto channel
 func (t *TezosListener) GetProposalUpvotes() chan *models.Proposal {
 	return t.proposalUpvoteChan
+}
+
+// GetProposalSummary returns a proposal summary channel
+func (t *TezosListener) GetProposalSummary() chan *models.ProposalSummary {
+	return t.proposalSummaryChan
+}
+
+// GetWinningProposal returns a proposal summary channel
+func (t *TezosListener) GetWinningProposal() chan *models.ProposalSummary {
+	return t.winningProposalChan
 }

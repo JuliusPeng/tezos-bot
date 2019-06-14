@@ -14,6 +14,8 @@ type ChainListener interface {
 	GetNewProto() chan string
 	GetNewProposal() chan *models.Proposal
 	GetProposalUpvotes() chan *models.Proposal
+	GetProposalSummary() chan *models.ProposalSummary
+	GetWinningProposal() chan *models.ProposalSummary
 }
 
 // VotePublisher interface for required methods of a vote publisher
@@ -21,6 +23,8 @@ type VotePublisher interface {
 	Publish(vote *models.Ballot) error
 	PublishProtoChange(proto string) error
 	PublishProposalInjection(proto *models.Proposal) error
+	PublishProposalSummary(proposal *models.ProposalSummary) error
+	PublishWinningProposalSummary(proposal *models.ProposalSummary) error
 }
 
 // Service main service that listen for new vote on a chain and publish them
@@ -41,28 +45,32 @@ func New(chainListener ChainListener, votePublisher VotePublisher) *Service {
 
 // Start a the service
 func (s *Service) Start() {
-	cVote := s.chainListener.GetNewVotes()
-	cProto := s.chainListener.GetNewProto()
-	cProposal := s.chainListener.GetNewProposal()
-	cProposalUpvote := s.chainListener.GetProposalUpvotes()
 	go func() {
 		for {
 			select {
-			case vote := <-cVote:
+			case vote := <-s.chainListener.GetNewVotes():
 				if err := s.votePublisher.Publish(vote); err != nil {
 					log.Printf("%v was not able to be sent due to error: %s", vote, err.Error())
 				}
-			case proto := <-cProto:
+			case proto := <-s.chainListener.GetNewProto():
 				if err := s.votePublisher.PublishProtoChange(proto); err != nil {
 					log.Printf("%v was not able to be sent due to error: %s", proto, err.Error())
 				}
-			case proposal := <-cProposal:
+			case proposal := <-s.chainListener.GetNewProposal():
 				if err := s.votePublisher.PublishProposalInjection(proposal); err != nil {
 					log.Printf("%v was not able to be sent due to error: %s", *proposal, err.Error())
 				}
-			case _ = <-cProposalUpvote:
+			case _ = <-s.chainListener.GetProposalUpvotes():
 				// TODO(simon) add message for proposal upvote
 				break
+			case summary := <-s.chainListener.GetProposalSummary():
+				if err := s.votePublisher.PublishProposalSummary(summary); err != nil {
+					log.Printf("%v was not able to be sent due to error: %s", summary, err.Error())
+				}
+			case winning := <-s.chainListener.GetWinningProposal():
+				if err := s.votePublisher.PublishWinningProposalSummary(winning); err != nil {
+					log.Printf("%v was not able to be sent due to error: %s", winning, err.Error())
+				}
 			case _ = <-s.signals:
 				s.chainListener.Stop()
 				return

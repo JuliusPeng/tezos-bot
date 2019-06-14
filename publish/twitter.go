@@ -68,3 +68,19 @@ func (t *TwitterPublisher) PublishProposalInjection(proposal *models.Proposal) e
 	log.Printf("(twitter) Published status: %s\n", status)
 	return err
 }
+
+// PublishProposalSummary a new proposal summary message as a tweet
+func (t *TwitterPublisher) PublishProposalSummary(proposal *models.ProposalSummary) error {
+	status := GetProposalSummaryString(proposal)
+	_, _, err := t.client.Statuses.Update(status, nil)
+	log.Printf("(twitter) Published status: %s\n", status)
+	return err
+}
+
+// PublishWinningProposalSummary a new winning proposal summary message as a tweet
+func (t *TwitterPublisher) PublishWinningProposalSummary(proposal *models.ProposalSummary) error {
+	status := GetWinningProposalString(proposal)
+	_, _, err := t.client.Statuses.Update(status, nil)
+	log.Printf("(twitter) Published status: %s\n", status)
+	return err
+}
