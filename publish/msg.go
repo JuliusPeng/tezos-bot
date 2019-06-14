@@ -46,6 +46,23 @@ func GetStatusString(ballot *models.Ballot) string {
 
 }
 
+// GetProposalInjectString retrieve the template for proposal injection status
+func GetProposalInjectString(proposal *models.Proposal) string {
+	address, err := LookupTZName(proposal.PKH, "proposal.tezz.ie")
+
+	if err != nil {
+		log.Printf("No address found for %s, err: %s", proposal.PKH, err)
+	}
+
+	templateAddress := proposal.PKH
+
+	if address != "" {
+		templateAddress = fmt.Sprintf("%s /%s", address, proposal.PKH)
+	}
+
+	return fmt.Sprintf("New #Tezos proposal injected! %s injected proposal %s in voting period %d.", templateAddress, proposal.ProposalHash, proposal.Period)
+}
+
 // GetProtocolString retrieve the template for protocol change status
 func GetProtocolString(proto string) string {
 	lookupKey := fmt.Sprintf("%s", proto)

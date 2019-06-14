@@ -19,6 +19,7 @@ func main() {
 		History:              false,
 		MonitorVote:          true,
 		MonitorProtocol:      true,
+		MonitorProposal:      true,
 		HistoryStartingBlock: 0,
 	}
 
