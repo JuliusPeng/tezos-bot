@@ -12,8 +12,14 @@ import (
 func GetStatusString(ballot *models.Ballot) string {
 	templateBasic := `Tezos address %s voted "%s" %son #Tezos proposal "%s"%s`
 	templateVanity := `Tezos baker "%s" /%s voted "%s" %son #Tezos proposal "%s"%s`
-	// TODO(jev) update to query Proposal vanity name for DNS
-	proposalVanityName := "Athens A"
+
+	var proposalVanityName string
+	protocolName, err := LookupTZName(ballot.ProposalHash, "proposal.tezz.ie")
+	if err != nil {
+		proposalVanityName = ballot.ProposalHash
+	} else {
+		proposalVanityName = protocolName
+	}
 
 	templateRolls := ""
 	if ballot.Rolls != 0 {
@@ -44,14 +50,14 @@ func GetStatusString(ballot *models.Ballot) string {
 func GetProtocolString(proto string) string {
 	lookupKey := fmt.Sprintf("%s", proto)
 
-	protocolName, err := LookupTZName(lookupKey, "tz.tezz.ie")
+	protocolName, err := LookupTZName(lookupKey, "proposal.tezz.ie")
 
 	if err != nil {
 		log.Printf("No protocol found for %s, err: %s", lookupKey, err)
 		protocolName = proto
 	}
 
-	return fmt.Sprintf("Protocol %s is now live on mainnet!", protocolName)
+	return fmt.Sprintf("Protocol %s is now live on mainnet! #Tezos", protocolName)
 }
 
 // LookupTZName queries DNS for a txt record corresponding to a TZ address.
