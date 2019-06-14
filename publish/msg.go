@@ -14,7 +14,7 @@ func GetStatusString(ballot *models.Ballot) string {
 	templateVanity := `Tezos baker "%s" /%s voted "%s" %son #Tezos proposal "%s"%s`
 
 	var proposalVanityName string
-	protocolName, err := LookupTZName(ballot.ProposalHash, "tz.tezz.ie")
+	protocolName, err := LookupTZName(ballot.ProposalHash, "proposal.tezz.ie")
 	if err != nil {
 		proposalVanityName = ballot.ProposalHash
 	} else {
@@ -50,7 +50,7 @@ func GetStatusString(ballot *models.Ballot) string {
 func GetProtocolString(proto string) string {
 	lookupKey := fmt.Sprintf("%s", proto)
 
-	protocolName, err := LookupTZName(lookupKey, "tz.tezz.ie")
+	protocolName, err := LookupTZName(lookupKey, "proposal.tezz.ie")
 
 	if err != nil {
 		log.Printf("No protocol found for %s, err: %s", lookupKey, err)
