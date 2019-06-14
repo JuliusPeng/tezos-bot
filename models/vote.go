@@ -6,6 +6,7 @@ type Ballot struct {
 	Ballot       string
 	ProposalHash string
 	Rolls        int64
+	IsTesting    bool
 
 	// General statistic
 	Quorum     float64

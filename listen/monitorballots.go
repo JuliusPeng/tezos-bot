@@ -9,7 +9,7 @@ import (
 	"github.com/ecadlabs/tezos-bot/models"
 )
 
-func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block) error {
+func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block, periodKind tezos.PeriodKind) error {
 	hash := block.Hash
 	log.Printf("TezosListener: Inspecting block %s for new ballot operations.\n", block.Hash)
 
@@ -64,6 +64,7 @@ func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block) e
 			Nay:          ballots.Nay,
 			Pass:         ballots.Pass,
 			Quorum:       quorum,
+			IsTesting:    periodKind.IsTestingVote(),
 			TotalRolls:   float64(totalRolls),
 		}
 		t.votesChan <- ballot
