@@ -35,7 +35,7 @@ func GetStatusString(ballot *models.Ballot) string {
 	templatePhase := "for the promotion phase."
 
 	if ballot.IsTesting {
-		templatePhase = "for the testing phase."
+		templatePhase = "for the exploration phase."
 	}
 
 	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%% yay/%.2f%% nay, %s %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum, templatePhase)
