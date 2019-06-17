@@ -8,13 +8,18 @@ import (
 	"github.com/ecadlabs/tezos-bot/models"
 )
 
+const (
+	proposalZone = "proposal.tezz.ie"
+	addressZone  = "tz.tezz.ie"
+)
+
 // GetStatusString composes a status string based on available vanity data
 func GetStatusString(ballot *models.Ballot) string {
 	templateBasic := `Tezos address %s voted "%s" %son #Tezos proposal "%s"%s`
 	templateVanity := `Tezos baker "%s" /%s voted "%s" %son #Tezos proposal "%s"%s`
 
 	var proposalVanityName string
-	protocolName, err := LookupTZName(ballot.ProposalHash, "proposal.tezz.ie")
+	protocolName, err := LookupTZName(ballot.ProposalHash, proposalZone)
 	if err != nil {
 		proposalVanityName = ballot.ProposalHash
 	} else {
@@ -42,7 +47,7 @@ func GetStatusString(ballot *models.Ballot) string {
 
 	// tz.tezz.ie is an experimental DNS zone to resolve vanity names from tz
 	// addresses
-	address, err := LookupTZName(ballot.PKH, "tz.tezz.ie")
+	address, err := LookupTZName(ballot.PKH, addressZone)
 
 	if err != nil {
 		log.Printf("No address found for %s, err: %s", ballot.PKH, err)
@@ -53,9 +58,9 @@ func GetStatusString(ballot *models.Ballot) string {
 
 }
 
-// GetProposalSummaryString
+// GetProposalSummaryString get status message for daily proposal summary
 func GetProposalSummaryString(summary *models.ProposalSummary) string {
-	proposalName, err := LookupTZName(summary.ProposalHash, "tz.tezz.ie")
+	proposalName, err := LookupTZName(summary.ProposalHash, proposalZone)
 
 	if err != nil {
 		log.Printf("No protocol found for %s, err: %s", summary.ProposalHash, err)
@@ -67,9 +72,9 @@ func GetProposalSummaryString(summary *models.ProposalSummary) string {
 	return fmt.Sprintf("Proposal upvotes: #Tezos proposal %s now has %d votes.", proposalName, summary.SupporterCount)
 }
 
-// GetWinningProposalString
+// GetWinningProposalString get status message for proposal that moved to exploration phase
 func GetWinningProposalString(summary *models.ProposalSummary) string {
-	proposalName, err := LookupTZName(summary.ProposalHash, "tz.tezz.ie")
+	proposalName, err := LookupTZName(summary.ProposalHash, proposalZone)
 
 	if err != nil {
 		log.Printf("No protocol found for %s, err: %s", summary.ProposalHash, err)
@@ -83,7 +88,7 @@ func GetWinningProposalString(summary *models.ProposalSummary) string {
 
 // GetProposalInjectString retrieve the template for proposal injection status
 func GetProposalInjectString(proposal *models.Proposal) string {
-	address, err := LookupTZName(proposal.PKH, "proposal.tezz.ie")
+	address, err := LookupTZName(proposal.PKH, proposalZone)
 
 	if err != nil {
 		log.Printf("No address found for %s, err: %s", proposal.PKH, err)
@@ -102,7 +107,7 @@ func GetProposalInjectString(proposal *models.Proposal) string {
 func GetProtocolString(proto string) string {
 	lookupKey := fmt.Sprintf("%s", proto)
 
-	protocolName, err := LookupTZName(lookupKey, "proposal.tezz.ie")
+	protocolName, err := LookupTZName(lookupKey, proposalZone)
 
 	if err != nil {
 		log.Printf("No protocol found for %s, err: %s", lookupKey, err)
