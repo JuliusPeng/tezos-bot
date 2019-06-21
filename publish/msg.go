@@ -69,7 +69,7 @@ func GetProposalSummaryString(summary *models.ProposalSummary) string {
 		proposalName = fmt.Sprintf("%s (%s)", proposalName, summary.ProposalHash)
 	}
 
-	return fmt.Sprintf("Proposal upvotes: #Tezos proposal %s now has %d votes.", proposalName, summary.SupporterCount)
+	return fmt.Sprintf("Proposal upvotes: #Tezos proposal %s received %d upvotes in cycle %d, and now has %d votes.", proposalName, summary.NewSupporters, summary.Cycle, summary.SupporterCount)
 }
 
 // GetWinningProposalString get status message for proposal that moved to exploration phase

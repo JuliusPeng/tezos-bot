@@ -7,11 +7,12 @@ import (
 	"sort"
 
 	tezos "github.com/ecadlabs/go-tezos"
+	"github.com/ecadlabs/tezos-bot/models"
 )
 
-func (t *TezosListener) retrieveTopNProposal(ctx context.Context, block *tezos.Block, limit int) ([]*tezos.Proposal, error) {
+func (t *TezosListener) retrieveTopNProposal(ctx context.Context, level int, limit int) ([]*tezos.Proposal, error) {
 	// Retrieve proposals for the current phase
-	proposals, err := t.service.GetProposals(ctx, t.config.GetChainID(), fmt.Sprintf("%d", block.Header.Level-1))
+	proposals, err := t.service.GetProposals(ctx, t.config.GetChainID(), fmt.Sprintf("%d", level-1))
 
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func (t *TezosListener) lookForWinningProposal(ctx context.Context, block *tezos
 	if isLastBlockOfVotingPeriod {
 		log.Printf("TezosListener: Inspecting block %s for winning proposal.\n", block.Hash)
 		// Retrieve proposals for the current phase
-		proposals, err := t.retrieveTopNProposal(ctx, block, 1)
+		proposals, err := t.retrieveTopNProposal(ctx, block.Header.Level, 1)
 
 		if err != nil {
 			return err
@@ -50,7 +51,10 @@ func (t *TezosListener) lookForWinningProposal(ctx context.Context, block *tezos
 
 		for i := range proposals {
 			// Publish winning proposal
-			t.winningProposalChan <- proposals[i]
+			t.winningProposalChan <- &models.ProposalSummary{
+				Proposal: *proposals[i],
+				Cycle:    (block.Header.Level / 4096) - 1,
+			}
 		}
 	}
 
@@ -58,25 +62,36 @@ func (t *TezosListener) lookForWinningProposal(ctx context.Context, block *tezos
 }
 
 func (t *TezosListener) lookForProposalSummary(ctx context.Context, block *tezos.Block) error {
-
-	blockPerDay := 60 * 24
-
-	// The 756th block of the day is about 11am EST
-	summaryBlock := 756
-
-	isDailyBlock := block.Header.Level%blockPerDay == summaryBlock
-
-	if isDailyBlock {
+	if block.Header.Level%4096 == 0 {
 		log.Printf("TezosListener: Inspecting block %s for proposal summary.\n", block.Hash)
 		// Retrieve proposals for the current phase
-		proposals, err := t.retrieveTopNProposal(ctx, block, 3)
+		proposals, err := t.retrieveTopNProposal(ctx, block.Header.Level, 3)
+
+		if err != nil {
+			return err
+		}
+
+		previousProposals, err := t.service.GetProposals(ctx, t.config.GetChainID(), fmt.Sprintf("%d", block.Header.Level-4096))
 
 		if err != nil {
 			return err
 		}
 
 		for i := range proposals {
-			t.proposalSummaryChan <- proposals[i]
+			previousSupporters := 0
+			for _, prev := range previousProposals {
+				if prev.ProposalHash == proposals[i].ProposalHash {
+					previousSupporters = prev.SupporterCount
+				}
+			}
+
+			newSupporters := proposals[i].SupporterCount - previousSupporters
+
+			t.proposalSummaryChan <- &models.ProposalSummary{
+				Proposal:      *proposals[i],
+				Cycle:         (block.Header.Level / 4096) - 1,
+				NewSupporters: newSupporters,
+			}
 		}
 	}
 

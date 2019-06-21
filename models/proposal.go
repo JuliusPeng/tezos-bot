@@ -2,7 +2,11 @@ package models
 
 import tezos "github.com/ecadlabs/go-tezos"
 
-type ProposalSummary = tezos.Proposal
+type ProposalSummary struct {
+	tezos.Proposal
+	Cycle         int
+	NewSupporters int
+}
 
 type Proposal struct {
 	ProposalHash string
