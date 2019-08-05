@@ -43,3 +43,10 @@ func (d *DebugPublisher) PublishWinningProposalSummary(proposal *models.Proposal
 	fmt.Printf("(%d) %s\n", len(status), status)
 	return nil
 }
+
+// PublishProposalUpvote a new proposal upvote message to stdout
+func (d *DebugPublisher) PublishProposalUpvote(proposal *models.Proposal) error {
+	status := GetProposalUpvoteString(proposal)
+	fmt.Printf("(%d) %s\n", len(status), status)
+	return nil
+}

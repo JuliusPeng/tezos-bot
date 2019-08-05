@@ -39,12 +39,35 @@ func (t *TezosListener) lookForProposal(ctx context.Context, block *tezos.Block)
 		}
 	}
 
+	listings, err := t.service.GetBallotListings(ctx, t.config.GetChainID(), block.Hash)
+
+	if err != nil {
+		return err
+	}
+
+	totalRolls := int64(0)
+	for _, entry := range listings {
+		totalRolls += entry.Rolls
+	}
+
+	if totalRolls == 0 {
+		// Unlikely to occurs
+		return fmt.Errorf("No rolls found in this block")
+	}
+
 	for _, proposalOp := range proposalOps {
 		for _, proposal := range proposalOp.Proposals {
+			rolls := int64(0)
+			for _, entry := range listings {
+				if entry.PKH == proposalOp.Source {
+					rolls = entry.Rolls
+				}
+			}
 			p := &models.Proposal{
 				ProposalHash: proposal,
 				PKH:          proposalOp.Source,
 				Period:       proposalOp.Period,
+				Rolls:        rolls,
 			}
 
 			if !proposalExists(proposal) {

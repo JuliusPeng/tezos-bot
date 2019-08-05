@@ -84,3 +84,13 @@ func (t *TwitterPublisher) PublishWinningProposalSummary(proposal *models.Propos
 	log.Printf("(twitter) Published status: %s\n", status)
 	return err
 }
+
+// PublishProposalUpvote a new proposal upvote message to twitter
+func (t *TwitterPublisher) PublishProposalUpvote(proposal *models.Proposal) error {
+	status := GetProposalUpvoteString(proposal)
+	_, _, err := t.client.Statuses.Update(status, nil)
+	if err != nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
+	return err
+}

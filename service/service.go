@@ -22,6 +22,7 @@ type ChainListener interface {
 type VotePublisher interface {
 	Publish(vote *models.Ballot) error
 	PublishProtoChange(proto string) error
+	PublishProposalUpvote(proposal *models.Proposal) error
 	PublishProposalInjection(proto *models.Proposal) error
 	PublishProposalSummary(proposal *models.ProposalSummary) error
 	PublishWinningProposalSummary(proposal *models.ProposalSummary) error
@@ -60,9 +61,10 @@ func (s *Service) Start() {
 				if err := s.votePublisher.PublishProposalInjection(proposal); err != nil {
 					log.Printf("%v was not able to be sent due to error: %s", *proposal, err.Error())
 				}
-			case _ = <-s.chainListener.GetProposalUpvotes():
-				// TODO(simon) add message for proposal upvote
-				break
+			case proposal := <-s.chainListener.GetProposalUpvotes():
+				if err := s.votePublisher.PublishProposalUpvote(proposal); err != nil {
+					log.Printf("%v was not able to be sent due to error: %s", *proposal, err.Error())
+				}
 			case summary := <-s.chainListener.GetProposalSummary():
 				if err := s.votePublisher.PublishProposalSummary(summary); err != nil {
 					log.Printf("%v was not able to be sent due to error: %s", summary, err.Error())
