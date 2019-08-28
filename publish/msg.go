@@ -1,9 +1,14 @@
 package publish
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"net"
+	"strconv"
+	"strings"
+	"text/template"
 
 	"github.com/ecadlabs/tezos-bot/models"
 )
@@ -13,49 +18,62 @@ const (
 	addressZone  = "tz.tezz.ie"
 )
 
+type statusTmplData struct {
+	AccountName         string
+	ProposalName        string
+	Rolls               int64
+	Phase               string
+	Voted               string
+	Period              int
+	Ballot              string
+	PercentYay          float64
+	PercentNay          float64
+	PercentTowardQuorum float64
+	Quorum              float64
+	QuorumReached       bool
+}
+
+func Percent(s float64) string {
+	return fmt.Sprintf("%s%%", strconv.FormatFloat(math.Round(s*100)/100, 'f', -1, 64))
+}
+
+var (
+	funcMap = template.FuncMap{
+		"Title":   strings.Title,
+		"Percent": Percent,
+	}
+	statusTmpl = template.Must(template.New("status.tmpl").Funcs(funcMap).ParseFiles("./templates/status.tmpl"))
+)
+
 // GetStatusString composes a status string based on available vanity data
-func GetStatusString(ballot *models.Ballot) string {
-	templateBasic := `Tezos address %s voted "%s" %son #Tezos proposal "%s"%s`
-	templateVanity := `Tezos baker "%s" /%s voted "%s" %son #Tezos proposal "%s"%s`
-
-	var proposalVanityName string
-	protocolName, err := LookupTZName(ballot.ProposalHash, proposalZone)
-	if err != nil {
-		proposalVanityName = ballot.ProposalHash
-	} else {
-		proposalVanityName = protocolName
+func GetStatusString(ballot *models.Ballot) (string, error) {
+	var tpl bytes.Buffer
+	if err := statusTmpl.Execute(&tpl, statusTmplData{
+		AccountName:         lookupOrDefault(ballot.PKH, addressZone),
+		Rolls:               ballot.Rolls,
+		ProposalName:        lookupOrDefault(ballot.ProposalHash, proposalZone),
+		Phase:               ballot.Phase(),
+		Period:              ballot.Period,
+		Ballot:              ballot.Ballot,
+		PercentYay:          ballot.CountingPercentYay(),
+		PercentNay:          ballot.CountingPercentNay(),
+		PercentTowardQuorum: ballot.PercentTowardQuorum(),
+		Quorum:              ballot.Quorum,
+		QuorumReached:       ballot.PercentTowardQuorum() <= 0,
+	}); err != nil {
+		return "", err
 	}
+	return tpl.String(), nil
+}
 
-	templateRolls := ""
-	if ballot.Rolls != 0 {
-		templateRolls = fmt.Sprintf("with %d rolls ", ballot.Rolls)
-	}
-
-	templateQuorum := "and quorum has been reached"
-	percentTowardQuorum := ballot.PercentTowardQuorum()
-	if percentTowardQuorum > 0 {
-		templateQuorum = fmt.Sprintf("with %.2f%% remaining to reach %.2f%% quorum", percentTowardQuorum, ballot.Quorum)
-	}
-
-	templatePhase := "for the promotion phase."
-
-	if ballot.IsTesting {
-		templatePhase = "for the exploration phase."
-	}
-
-	templateStatus := fmt.Sprintf("\n\nVote status is %.2f%% yay/%.2f%% nay, %s %s", ballot.CountingPercentYay(), ballot.CountingPercentNay(), templateQuorum, templatePhase)
-
-	// tz.tezz.ie is an experimental DNS zone to resolve vanity names from tz
-	// addresses
-	address, err := LookupTZName(ballot.PKH, addressZone)
+func lookupOrDefault(hash string, zone string) string {
+	address, err := LookupTZName(hash, zone)
 
 	if err != nil {
-		log.Printf("No address found for %s, err: %s", ballot.PKH, err)
-		return fmt.Sprintf(templateBasic, ballot.PKH, ballot.Ballot, templateRolls, proposalVanityName, templateStatus)
+		log.Printf("No value found for %s, err: %s", hash, err)
+		return hash
 	}
-	log.Printf("Address %s found for %s, ", address, ballot.PKH)
-	return fmt.Sprintf(templateVanity, address, ballot.PKH, ballot.Ballot, templateRolls, proposalVanityName, templateStatus)
-
+	return address
 }
 
 // GetProposalSummaryString get status message for daily proposal summary

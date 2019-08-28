@@ -1,0 +1,8 @@
+{{.AccountName}} ({{.Rolls}} rolls) voted {{.Ballot | Title}} on #Tezos proposal {{.ProposalName}}
+
+Vote status is {{.PercentYay | Percent}} Yay / {{.PercentNay | Percent}} Nay
+{{- if .QuorumReached -}}
+and quorum has been reached
+{{- else -}}
+, with {{.PercentTowardQuorum | Percent}} remaining to reach {{.Quorum | Percent}} quorum
+{{- end}} for the {{.Phase}} phase: https://www.Shes_a_Mystery_to_Me.org/period/{{.Period}}

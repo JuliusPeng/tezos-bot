@@ -47,9 +47,14 @@ func NewTwitterPublisher(config TwitterConfig) (*TwitterPublisher, error) {
 
 // Publish a new ballot as a tweet
 func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
-	status := GetStatusString(ballot)
-	_, _, err := t.client.Statuses.Update(status, nil)
-	log.Printf("(twitter) Published status: %s\n", status)
+	status, err := GetStatusString(ballot)
+	if err != nil {
+		return err
+	}
+	_, _, err = t.client.Statuses.Update(status, nil)
+	if err == nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
 	return err
 }
 
@@ -57,7 +62,9 @@ func (t *TwitterPublisher) Publish(ballot *models.Ballot) error {
 func (t *TwitterPublisher) PublishProtoChange(proto string) error {
 	status := GetProtocolString(proto)
 	_, _, err := t.client.Statuses.Update(status, nil)
-	log.Printf("(twitter) Published status: %s\n", status)
+	if err == nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
 	return err
 }
 
@@ -65,7 +72,9 @@ func (t *TwitterPublisher) PublishProtoChange(proto string) error {
 func (t *TwitterPublisher) PublishProposalInjection(proposal *models.Proposal) error {
 	status := GetProposalInjectString(proposal)
 	_, _, err := t.client.Statuses.Update(status, nil)
-	log.Printf("(twitter) Published status: %s\n", status)
+	if err == nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
 	return err
 }
 
@@ -73,7 +82,9 @@ func (t *TwitterPublisher) PublishProposalInjection(proposal *models.Proposal) e
 func (t *TwitterPublisher) PublishProposalSummary(proposal *models.ProposalSummary) error {
 	status := GetProposalSummaryString(proposal)
 	_, _, err := t.client.Statuses.Update(status, nil)
-	log.Printf("(twitter) Published status: %s\n", status)
+	if err == nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
 	return err
 }
 
@@ -81,7 +92,9 @@ func (t *TwitterPublisher) PublishProposalSummary(proposal *models.ProposalSumma
 func (t *TwitterPublisher) PublishWinningProposalSummary(proposal *models.ProposalSummary) error {
 	status := GetWinningProposalString(proposal)
 	_, _, err := t.client.Statuses.Update(status, nil)
-	log.Printf("(twitter) Published status: %s\n", status)
+	if err == nil {
+		log.Printf("(twitter) Published status: %s\n", status)
+	}
 	return err
 }
 
@@ -89,7 +102,7 @@ func (t *TwitterPublisher) PublishWinningProposalSummary(proposal *models.Propos
 func (t *TwitterPublisher) PublishProposalUpvote(proposal *models.Proposal) error {
 	status := GetProposalUpvoteString(proposal)
 	_, _, err := t.client.Statuses.Update(status, nil)
-	if err != nil {
+	if err == nil {
 		log.Printf("(twitter) Published status: %s\n", status)
 	}
 	return err

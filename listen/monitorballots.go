@@ -66,6 +66,7 @@ func (t *TezosListener) lookForBallot(ctx context.Context, block *tezos.Block, p
 			Quorum:       quorum,
 			IsTesting:    periodKind.IsTestingVote(),
 			TotalRolls:   float64(totalRolls),
+			Period:       block.Metadata.Level.VotingPeriod,
 		}
 		t.votesChan <- ballot
 	}
