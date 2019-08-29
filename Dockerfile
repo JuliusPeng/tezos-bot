@@ -17,5 +17,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build
 FROM alpine
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
+COPY --from=build-env /go/src/github.com/ecadlabs/tezos-bot/templates /app/templates
 COPY --from=build-env /go/src/github.com/ecadlabs/tezos-bot/tezos-bot /app/tezos-bot
 ENTRYPOINT ["/app/tezos-bot"]

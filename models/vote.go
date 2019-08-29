@@ -7,6 +7,7 @@ type Ballot struct {
 	ProposalHash string
 	Rolls        int64
 	IsTesting    bool
+	Period       int
 
 	// General statistic
 	Quorum     float64
@@ -74,4 +75,11 @@ func (b *Ballot) CountingParticipations() float64 {
 
 func (b *Ballot) PercentTowardQuorum() float64 {
 	return b.Quorum - b.PercentParticipation()
+}
+
+func (b *Ballot) Phase() string {
+	if b.IsTesting {
+		return "exploration"
+	}
+	return "promotion"
 }
