@@ -123,7 +123,7 @@ func GetProposalInjectString(proposal *models.Proposal) string {
 
 // GetProposalUpvoteString retrieve the template for proposal upvote status
 func GetProposalUpvoteString(proposal *models.Proposal) string {
-	address, err := LookupTZName(proposal.PKH, proposalZone)
+	address, err := LookupTZName(proposal.PKH, addressZone)
 
 	if err != nil {
 		log.Printf("No address found for %s, err: %s", proposal.PKH, err)
@@ -137,10 +137,12 @@ func GetProposalUpvoteString(proposal *models.Proposal) string {
 	templateAddress := proposal.PKH
 
 	if address != "" {
-		templateAddress = fmt.Sprintf("%s /%s", address, proposal.PKH)
+		templateAddress = address
 	}
 
-	return fmt.Sprintf("Address %s upvoted proposal %s %sin voting period %d.", templateAddress, proposal.ProposalHash, templateRolls, proposal.Period)
+	proposalName := lookupOrDefault(proposal.ProposalHash, proposalZone)
+
+	return fmt.Sprintf("Address %s upvoted proposal %s %sin voting period %d.\n\nhttps://tezblock.io/account/%s?tab=Votes", templateAddress, proposalName, templateRolls, proposal.Period, proposal.PKH)
 }
 
 // GetProtocolString retrieve the template for protocol change status
